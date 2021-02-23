@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main_graph.xml"
+    app:startDestination="@id/albumListFragment">
+
+    <fragment
+        android:id="@+id/albumListFragment"
+        android:name="cc.anisimov.vlad.simplealbumlist.ui.fragment.AlbumListFragment"
+        android:label="AlbumListFragment">
+        <action
+            android:id="@+id/actionAlbumToPhoto"
+            app:destination="@id/photoListFragment"
+            app:enterAnim="@anim/enter_from_right"
+            app:exitAnim="@anim/exit_to_left"
+            app:popEnterAnim="@anim/enter_from_left"
+            app:popExitAnim="@anim/exit_to_right" />
+    </fragment>
+    <fragment
+        android:id="@+id/photoListFragment"
+        android:name="cc.anisimov.vlad.simplealbumlist.ui.fragment.PhotoListFragment"
+        android:label="PhotoListFragment">
+        <argument
+            android:name="albumId"
+            app:argType="integer" />
+        <action
+            android:id="@+id/actionPhotoListToDetail"
+            app:destination="@id/photoDetailFragment"
+            app:enterAnim="@anim/enter_from_right"
+            app:exitAnim="@anim/exit_to_left"
+            app:popEnterAnim="@anim/enter_from_left"
+            app:popExitAnim="@anim/exit_to_right" />
+    </fragment>
+    <fragment
+        android:id="@+id/photoDetailFragment"
+        android:name="cc.anisimov.vlad.simplealbumlist.ui.fragment.PhotoDetailFragment"
+        android:label="PhotoDetailFragment">
+        <argument
+            android:name="url"
+            app:argType="string" />
+        <argument
+            android:name="title"
+            app:argType="string" />
+    </fragment>
+</navigation>
