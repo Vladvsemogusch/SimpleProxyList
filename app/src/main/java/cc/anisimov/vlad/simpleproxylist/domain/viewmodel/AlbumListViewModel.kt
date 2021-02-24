@@ -7,7 +7,7 @@ import androidx.lifecycle.viewModelScope
 import cc.anisimov.vlad.simpleproxylist.data.repository.LocaleRepo
 import cc.anisimov.vlad.simpleproxylist.data.repository.LocaleRepo.Companion.REGION_UA
 import cc.anisimov.vlad.simpleproxylist.data.repository.ProxyRepo
-import cc.anisimov.vlad.simpleproxylist.domain.model.ProxyInfoUI
+import cc.anisimov.vlad.simpleproxylist.ui.model.ProxyInfoUI
 import kotlinx.coroutines.launch
 
 
@@ -47,7 +47,8 @@ class AlbumListViewModel @ViewModelInject constructor(
     private fun loadDefaultProxies(region: String) {
         oLoading.value = true
         viewModelScope.launch {
-            var data = proxyRepo.getDefaultProxies(region)
+            val proxyList = proxyRepo.getDefaultProxyList(region)
+            var filteredProxyList = filterProxies(proxyList)
 //            when (result) {
 //                is RequestResult.Error -> {
 //                    oError.value = result.toString()
@@ -60,10 +61,25 @@ class AlbumListViewModel @ViewModelInject constructor(
 //                    oLoading.value = false
 //                }
 //            }
-            data = data.sortedBy { it.id }
-            oProxyList.value = data
+            filteredProxyList = filteredProxyList.sortedBy { it.id }
+            oProxyList.value = filteredProxyList
             oLoading.value = false
         }
+    }
+
+    private suspend fun filterProxies(proxyList: List<ProxyInfoUI>): List<ProxyInfoUI> {
+        val filteredProxies = ArrayList<ProxyInfoUI>()
+        for (proxyInfo in proxyList) {
+            if (checkAlive(proxyInfo)){
+                filteredProxies.add(proxyInfo)
+            }
+        }
+        return filteredProxies
+    }
+
+    private suspend fun checkAlive(proxyInfo: ProxyInfoUI): Boolean {
+        val proxyResponseInfo = proxyRepo.getProxyResponseInfo(proxyInfo.region, proxyInfo.id)
+        return proxyResponseInfo.serverResponded && proxyResponseInfo.responseCode in 200..299
     }
 
     fun onRegionSelected(region: String) {

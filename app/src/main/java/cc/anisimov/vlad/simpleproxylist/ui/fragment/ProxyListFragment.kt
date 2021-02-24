@@ -13,7 +13,7 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import cc.anisimov.vlad.simpleproxylist.R
-import cc.anisimov.vlad.simpleproxylist.domain.model.ProxyInfoUI
+import cc.anisimov.vlad.simpleproxylist.ui.model.ProxyInfoUI
 import cc.anisimov.vlad.simpleproxylist.domain.viewmodel.AlbumListViewModel
 import cc.anisimov.vlad.simpleproxylist.ui.common.BaseFragment
 import dagger.hilt.android.AndroidEntryPoint

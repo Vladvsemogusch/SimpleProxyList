@@ -1,4 +1,4 @@
-package cc.anisimov.vlad.simpleproxylist.domain.model
+package cc.anisimov.vlad.simpleproxylist.ui.model
 
 data class ProxyInfoUI(
     val region: String,

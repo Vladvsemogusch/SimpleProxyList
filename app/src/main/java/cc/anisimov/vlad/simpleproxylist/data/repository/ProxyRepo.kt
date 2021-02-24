@@ -1,7 +1,9 @@
 package cc.anisimov.vlad.simpleproxylist.data.repository
 
 import android.content.Context
+import android.util.Log
 import cc.anisimov.vlad.simpleproxylist.R
+import cc.anisimov.vlad.simpleproxylist.data.model.ProxyInfo
 import cc.anisimov.vlad.simpleproxylist.data.model.RawDefaultProxies
 import cc.anisimov.vlad.simpleproxylist.data.model.RequestResult
 import cc.anisimov.vlad.simpleproxylist.data.repository.LocaleRepo.Companion.REGION_FR
@@ -9,12 +11,13 @@ import cc.anisimov.vlad.simpleproxylist.data.repository.LocaleRepo.Companion.REG
 import cc.anisimov.vlad.simpleproxylist.data.repository.LocaleRepo.Companion.REGION_UA
 import cc.anisimov.vlad.simpleproxylist.data.repository.LocaleRepo.Companion.REGION_US
 import cc.anisimov.vlad.simpleproxylist.data.source.remote.ProxyApi
-import cc.anisimov.vlad.simpleproxylist.domain.model.ProxyInfoUI
+import cc.anisimov.vlad.simpleproxylist.domain.model.ProxyResponseInfo
+import cc.anisimov.vlad.simpleproxylist.ui.model.ProxyInfoUI
 import cc.anisimov.vlad.simpleproxylist.utils.Utils
 import com.google.gson.Gson
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
+import retrofit2.Response
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -25,20 +28,31 @@ class ProxyRepo @Inject constructor(
     private val gson: Gson
 ) {
 
-    suspend fun getProxyInfo(region: String, id: Int): RequestResult<ProxyInfoUI> =
+    private suspend fun getProxyInfoResponse(
+        region: String,
+        id: Int
+    ): RequestResult<Response<ProxyInfo>> =
         withContext(
             Dispatchers.IO
         ) {
-            val result = kotlin.runCatching { remoteApi.getProxyInfo(region, id) }
-            if (result.isFailure) {
-                return@withContext RequestResult.Error(result.exceptionOrNull())
+            var requestResult: RequestResult<Response<ProxyInfo>> =
+                RequestResult.Error(Exception("Unexpected scenario"))
+            val handler = CoroutineExceptionHandler { _, exception ->
+                requestResult = RequestResult.Error(exception)
             }
-            val proxyInfo = result.getOrNull()!!.body()!!
-            val proxyInfoUI = ProxyInfoUI(proxyInfo.region,proxyInfo.id)
-            return@withContext RequestResult.Success(proxyInfoUI)
+            launch(handler) {
+                try {
+                    val response = remoteApi.getProxyInfo(region, id)
+                    requestResult = RequestResult.Success(response)
+                }catch (e:Exception){
+                    Log.d("asd",e.toString())
+                }
+
+            }
+            return@withContext requestResult
         }
 
-    fun getDefaultProxies(region: String): List<ProxyInfoUI> {
+    fun getDefaultProxyList(region: String): List<ProxyInfoUI> {
         val defaultProxiesJson = Utils.readRawTextFile(appContext.resources, R.raw.default_proxies)
         val defaultProxies = gson.fromJson(defaultProxiesJson, RawDefaultProxies::class.java)
         //  Assuming json comes from remote source and we can't change it's structure
@@ -54,6 +68,18 @@ class ProxyRepo @Inject constructor(
             val proxyRegion = splitProxyUrl[3]
             val proxyId = splitProxyUrl[4].toInt()
             ProxyInfoUI(proxyRegion, proxyId)
+        }
+    }
+
+    suspend fun getProxyResponseInfo(region: String, id: Int): ProxyResponseInfo {
+        val requestResponse = getProxyInfoResponse(region, id)
+        return when (requestResponse) {
+            is RequestResult.Error -> {
+                ProxyResponseInfo(false, -1)
+            }
+            is RequestResult.Success -> {
+                ProxyResponseInfo(true, requestResponse.data.code())
+            }
         }
     }
 
