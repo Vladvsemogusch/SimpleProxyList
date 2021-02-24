@@ -1,6 +1,7 @@
 package cc.anisimov.vlad.simpleproxylist.di.module
 
-import cc.anisimov.vlad.simpleproxylist.data.source.remote.TypicodeApi
+import cc.anisimov.vlad.simpleproxylist.data.source.remote.ProxyApi
+import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -13,13 +14,13 @@ import javax.inject.Singleton
 @InstallIn(ApplicationComponent::class)
 class AppModule {
     companion object{
-        const val BASE_URL = "https://jsonplaceholder.typicode.com"
+        const val BASE_URL = "https://wnnzn.sse.codesandbox.io"
     }
 
     @Provides
     @Singleton
-    fun provideApi(retrofit: Retrofit): TypicodeApi {
-        return retrofit.create(TypicodeApi::class.java)
+    fun provideApi(retrofit: Retrofit): ProxyApi {
+        return retrofit.create(ProxyApi::class.java)
     }
 
     @Provides
@@ -31,5 +32,11 @@ class AppModule {
                 GsonConverterFactory.create()
             )
             .build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideGson(): Gson {
+        return Gson()
     }
 }

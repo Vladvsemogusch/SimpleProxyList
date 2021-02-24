@@ -6,46 +6,65 @@ import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
-import android.widget.ImageView
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.TextView
 import androidx.fragment.app.viewModels
-import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import cc.anisimov.vlad.simpleproxylist.R
-import cc.anisimov.vlad.simpleproxylist.domain.model.AlbumUI
+import cc.anisimov.vlad.simpleproxylist.domain.model.ProxyInfoUI
 import cc.anisimov.vlad.simpleproxylist.domain.viewmodel.AlbumListViewModel
 import cc.anisimov.vlad.simpleproxylist.ui.common.BaseFragment
-import coil.load
 import dagger.hilt.android.AndroidEntryPoint
 import eu.davidea.flexibleadapter.FlexibleAdapter
 import eu.davidea.flexibleadapter.items.AbstractFlexibleItem
 import eu.davidea.flexibleadapter.items.IFlexible
 import eu.davidea.viewholders.FlexibleViewHolder
-import kotlinx.android.synthetic.main.fragment_album_list.*
+import kotlinx.android.synthetic.main.fragment_proxy_list.*
 import kotlinx.android.synthetic.main.loading_overlay.*
 import kotlinx.android.synthetic.main.toolbar.*
 
 
 @AndroidEntryPoint
-class AlbumListFragment : BaseFragment() {
+class ProxyListFragment : BaseFragment() {
     private val viewModel: AlbumListViewModel by viewModels()
-    private lateinit var listAdapter: FlexibleAdapter<AlbumAdapterItem>
+    private lateinit var listAdapter: FlexibleAdapter<ProxyItem>
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_album_list, container, false)
+        return inflater.inflate(R.layout.fragment_proxy_list, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setupToolbar(toolbar, getString(R.string.albums), false)
+        setupToolbar(toolbar, getString(R.string.proxy_list_title), false)
+        setupSpinner()
         setupList()
         setupLoading()
         setupErrorHandling()
+    }
+
+    private fun setupSpinner() {
+        ArrayAdapter.createFromResource(
+            requireContext(),
+            R.array.locales_array,
+            android.R.layout.simple_spinner_item
+        ).also { adapter ->
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            spinner.adapter = adapter
+        }
+        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View?, pos: Int, id: Long) {
+                viewModel.onLocaleSelected(spinner.selectedItem.toString())
+            }
+
+            override fun onNothingSelected(p0: AdapterView<*>?) {
+            }
+        }
     }
 
     private fun setupErrorHandling() {
@@ -67,73 +86,64 @@ class AlbumListFragment : BaseFragment() {
     }
 
     private fun setupList() {
-        rv.layoutManager = GridLayoutManager(requireContext(), 2)
-        listAdapter = FlexibleAdapter<AlbumAdapterItem>(ArrayList())
+        rv.layoutManager = LinearLayoutManager(requireContext())
+        listAdapter = FlexibleAdapter<ProxyItem>(ArrayList())
         rv.adapter = listAdapter
-        viewModel.oAlbumList.observe(viewLifecycleOwner) { albumList ->
-            if (albumList == null || albumList.isEmpty()) {
+        viewModel.oProxyList.observe(viewLifecycleOwner) { proxyList ->
+            if (proxyList == null || proxyList.isEmpty()) {
                 return@observe
             }
-            val adapterItems = albumList.map { AlbumAdapterItem(it) }
+            listAdapter.clear()
+            val adapterItems = proxyList.map { ProxyItem(it) }
             listAdapter.addItems(0, adapterItems)
         }
         listAdapter.addListener(
             FlexibleAdapter.OnItemClickListener { view: View, position: Int ->
                 //  Possible transition lags innate to jetpack navigation
                 val item = listAdapter.getItem(position)!!
-                val directions = AlbumListFragmentDirections.actionAlbumToPhoto(item.albumId)
-                findNavController().navigate(directions)
                 true
             })
     }
 
-    class AlbumAdapterItem(private val album: AlbumUI) :
-        AbstractFlexibleItem<AlbumAdapterItem.AlbumViewHolder>() {
-        val albumId
-            get() = album.id
+    class ProxyItem(private val proxyInfo: ProxyInfoUI) :
+        AbstractFlexibleItem<ProxyItem.ProxyViewHolder>() {
 
         override fun equals(other: Any?): Boolean {
-            if (other is AlbumAdapterItem) {
-                return this.album.id == other.album.id
+            if (other is ProxyItem) {
+                return this.proxyInfo.id == other.proxyInfo.id
             }
             return false
         }
 
         override fun getLayoutRes(): Int {
-            return R.layout.item_album
+            return R.layout.item_proxy
         }
 
         override fun createViewHolder(
             view: View,
             adapter: FlexibleAdapter<IFlexible<RecyclerView.ViewHolder>>
-        ): AlbumViewHolder {
-            return AlbumViewHolder(view, adapter)
+        ): ProxyViewHolder {
+            return ProxyViewHolder(view, adapter)
         }
 
         override fun bindViewHolder(
             adapter: FlexibleAdapter<IFlexible<RecyclerView.ViewHolder>>,
-            holder: AlbumViewHolder,
+            holder: ProxyViewHolder,
             position: Int,
             payloads: MutableList<Any>?
         ) {
-            holder.ivThumbnail1.load(album.thumbnailURLList[0])
-            holder.ivThumbnail2.load(album.thumbnailURLList[1])
-            holder.ivThumbnail3.load(album.thumbnailURLList[2])
-            holder.ivThumbnail4.load(album.thumbnailURLList[3])
-            holder.tvAlbumTitle.text = album.title
+            holder.tvRegion.text = proxyInfo.region
+            holder.tvId.text = proxyInfo.id.toString()
         }
 
         override fun hashCode(): Int {
-            return album.id.hashCode()
+            return proxyInfo.id.hashCode()
         }
 
-        class AlbumViewHolder(view: View, adapter: FlexibleAdapter<*>) :
+        class ProxyViewHolder(view: View, adapter: FlexibleAdapter<*>) :
             FlexibleViewHolder(view, adapter) {
-            val ivThumbnail1: ImageView = view.findViewById(R.id.ivThumbnail1)
-            val ivThumbnail2: ImageView = view.findViewById(R.id.ivThumbnail2)
-            val ivThumbnail3: ImageView = view.findViewById(R.id.ivThumbnail3)
-            val ivThumbnail4: ImageView = view.findViewById(R.id.ivThumbnail4)
-            val tvAlbumTitle: TextView = view.findViewById(R.id.tvAlbumTitle)
+            val tvRegion: TextView = view.findViewById(R.id.tvRegion)
+            val tvId: TextView = view.findViewById(R.id.tvId)
         }
     }
 }
