@@ -1,11 +1,11 @@
 package cc.anisimov.vlad.simpleproxylist.data.repository
 
 import android.content.Context
-import android.util.Log
 import cc.anisimov.vlad.simpleproxylist.R
 import cc.anisimov.vlad.simpleproxylist.data.model.ProxyInfo
 import cc.anisimov.vlad.simpleproxylist.data.model.RawDefaultProxies
 import cc.anisimov.vlad.simpleproxylist.data.model.RequestResult
+import cc.anisimov.vlad.simpleproxylist.data.model.exception.NetworkException
 import cc.anisimov.vlad.simpleproxylist.data.repository.LocaleRepo.Companion.REGION_FR
 import cc.anisimov.vlad.simpleproxylist.data.repository.LocaleRepo.Companion.REGION_RU
 import cc.anisimov.vlad.simpleproxylist.data.repository.LocaleRepo.Companion.REGION_UA
@@ -17,6 +17,7 @@ import cc.anisimov.vlad.simpleproxylist.utils.Utils
 import com.google.gson.Gson
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers.IO
 import retrofit2.Response
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -33,23 +34,18 @@ class ProxyRepo @Inject constructor(
         id: Int
     ): RequestResult<Response<ProxyInfo>> =
         withContext(
-            Dispatchers.IO
+            IO
         ) {
-            var requestResult: RequestResult<Response<ProxyInfo>> =
-                RequestResult.Error(Exception("Unexpected scenario"))
-            val handler = CoroutineExceptionHandler { _, exception ->
-                requestResult = RequestResult.Error(exception)
+            val response: Response<ProxyInfo>
+            try {
+                response = remoteApi.getProxyInfo(region, id)
+            } catch (e: Exception) {
+                return@withContext RequestResult.Error(e)
             }
-            launch(handler) {
-                try {
-                    val response = remoteApi.getProxyInfo(region, id)
-                    requestResult = RequestResult.Success(response)
-                }catch (e:Exception){
-                    Log.d("asd",e.toString())
-                }
-
+            return@withContext when (response.code()) {
+                in 200..299 -> RequestResult.Success(response)
+                else -> RequestResult.Error(NetworkException(response.code()))
             }
-            return@withContext requestResult
         }
 
     fun getDefaultProxyList(region: String): List<ProxyInfoUI> {
@@ -75,6 +71,7 @@ class ProxyRepo @Inject constructor(
         val requestResponse = getProxyInfoResponse(region, id)
         return when (requestResponse) {
             is RequestResult.Error -> {
+                //  Response code doesn't matter in this case
                 ProxyResponseInfo(false, -1)
             }
             is RequestResult.Success -> {
