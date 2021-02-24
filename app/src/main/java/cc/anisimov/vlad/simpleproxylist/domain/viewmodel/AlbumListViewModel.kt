@@ -60,6 +60,7 @@ class AlbumListViewModel @ViewModelInject constructor(
 //                    oLoading.value = false
 //                }
 //            }
+            data = data.sortedBy { it.id }
             oProxyList.value = data
             oLoading.value = false
         }
