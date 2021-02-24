@@ -14,7 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import cc.anisimov.vlad.simpleproxylist.R
 import cc.anisimov.vlad.simpleproxylist.ui.model.ProxyInfoUI
-import cc.anisimov.vlad.simpleproxylist.domain.viewmodel.AlbumListViewModel
+import cc.anisimov.vlad.simpleproxylist.domain.viewmodel.ProxyListViewModel
 import cc.anisimov.vlad.simpleproxylist.ui.common.BaseFragment
 import dagger.hilt.android.AndroidEntryPoint
 import eu.davidea.flexibleadapter.FlexibleAdapter
@@ -28,7 +28,7 @@ import kotlinx.android.synthetic.main.toolbar.*
 
 @AndroidEntryPoint
 class ProxyListFragment : BaseFragment() {
-    private val viewModel: AlbumListViewModel by viewModels()
+    private val viewModel: ProxyListViewModel by viewModels()
     private lateinit var listAdapter: FlexibleAdapter<ProxyItem>
 
     override fun onCreateView(

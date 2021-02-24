@@ -11,7 +11,7 @@ import cc.anisimov.vlad.simpleproxylist.ui.model.ProxyInfoUI
 import kotlinx.coroutines.launch
 
 
-class AlbumListViewModel @ViewModelInject constructor(
+class ProxyListViewModel @ViewModelInject constructor(
     private val proxyRepo: ProxyRepo,
     private val localeRepo: LocaleRepo
 ) : ViewModel() {

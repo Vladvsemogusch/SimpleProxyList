@@ -1,7 +1,6 @@
 package cc.anisimov.vlad.simpleproxylist.data.model
 
 
-import com.google.gson.annotations.SerializedName
 
 data class ProxyInfo(
     val crash: Boolean,
