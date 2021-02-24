@@ -49,18 +49,6 @@ class AlbumListViewModel @ViewModelInject constructor(
         viewModelScope.launch {
             val proxyList = proxyRepo.getDefaultProxyList(region)
             var filteredProxyList = filterProxies(proxyList)
-//            when (result) {
-//                is RequestResult.Error -> {
-//                    oError.value = result.toString()
-//                    oLoading.value = false
-//                    return@launch
-//                }
-//                is RequestResult.Success -> {
-//                    val proxyList = result.data
-//                    oProxyList.value = proxyList
-//                    oLoading.value = false
-//                }
-//            }
             filteredProxyList = filteredProxyList.sortedBy { it.id }
             oProxyList.value = filteredProxyList
             oLoading.value = false

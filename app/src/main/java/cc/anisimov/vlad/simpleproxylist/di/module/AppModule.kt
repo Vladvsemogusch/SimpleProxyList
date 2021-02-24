@@ -46,11 +46,6 @@ class AppModule {
         return OkHttpClient.Builder()
             .readTimeout(30, TimeUnit.SECONDS)
             .connectTimeout(30, TimeUnit.SECONDS)
-            .addInterceptor {
-                val request: Request = it.request()
-                val t = it.proceed(request)
-                return@addInterceptor t
-            }
             .build()
     }
 
