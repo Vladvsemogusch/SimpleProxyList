@@ -47,7 +47,7 @@ class AlbumListViewModel @ViewModelInject constructor(
     private fun loadDefaultProxies(region: String) {
         oLoading.value = true
         viewModelScope.launch {
-            val data = proxyRepo.getDefaultProxies(region)
+            var data = proxyRepo.getDefaultProxies(region)
 //            when (result) {
 //                is RequestResult.Error -> {
 //                    oError.value = result.toString()
@@ -66,7 +66,7 @@ class AlbumListViewModel @ViewModelInject constructor(
         }
     }
 
-    fun onLocaleSelected(selectedItem: String) {
-
+    fun onRegionSelected(region: String) {
+        oCurrentRegion.value = region
     }
 }

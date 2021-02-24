@@ -58,8 +58,14 @@ class ProxyListFragment : BaseFragment() {
             spinner.adapter = adapter
         }
         spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            var firstTime = true
             override fun onItemSelected(parent: AdapterView<*>, view: View?, pos: Int, id: Long) {
-                viewModel.onLocaleSelected(spinner.selectedItem.toString())
+                //  Remove trigger on data set
+                if (firstTime){
+                    firstTime = false
+                    return
+                }
+                viewModel.onRegionSelected(spinner.selectedItem.toString().toLowerCase())
             }
 
             override fun onNothingSelected(p0: AdapterView<*>?) {
